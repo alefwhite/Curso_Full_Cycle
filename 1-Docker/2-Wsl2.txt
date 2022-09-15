@@ -152,6 +152,7 @@ wsl -l -v
 Para parar todas as distros wsl --shutdown
 
 ====================================================================================================================
+
 Backup com WSL 2
 
 Temos uma forma muito simples de fazermos backup do nosso wsl 2
@@ -164,3 +165,32 @@ Windows + R
 Podemos copiar um arquivo que tem a extensão vhdx que tem uma imagem de disco e ele fica no caminho abaixo:
 
 AppData\Local\Packages\CanonicalGroupLimited.Ubuntu_hash_gerada\LocalState
+
+Após guardar a cópia do disco e caso tivermos formatado o windows ou instalando em um outro computador o WSL2 pela primeira vez,
+temos que instalar o Ubuntu pela loja da microsoft e inicia-lo pela primeira vez e depois parar a execução usando o comando 
+wsl --shutdown, ai podemos ir até o caminho AppData\Local\Packages\CanonicalGroupLimited.Ubuntu_hash_gerada\LocalState 
+e colocar a cópia.
+====================================================================================================================
+
+Integrar Docker com WSL 2
+
+1 - Baixar o Docker Desktop na versão stable
+    
+    1.1 - Em GENERAL devemos checar se a opção USE THE WSL2 BASED ENGINE está habilitada
+    1.2 - Clique no ícone do Docker perto do relógio -> Settings -> Settings no topo -> Resources -> WSL Integration.
+          Habilite Enable integration with my default WSL distro e habilite sua versão Linux.
+
+    2 - Agora no Windows Terminal podemos digitar vim .profile e 
+        acrescentar export DOCKER_BUILDKIT=1 no final do arquivo .profile do seu usuário do Linux para 
+        ganhar mais performance ao realizar builds com Docker. 
+        Execute o comando source ~/.profile para carregar esta variável de ambiente no ambiente do seu WSL 2.
+
+
+        2.1 - Para sair do vim crtl + c depois :wq e depois para sair :qa!
+
+    Execute o comando wsl -l -v com o PowerShell para ver as versões de Linux instaladas e seu status atual(parado ou rodando). 
+    Verificando distribuições instaladas do Linux no WSL 2
+    Execute o comando wsl --shutdown com o PowerShell para desligar todas as distribuições Linux que estão rodando no momento 
+    (ao executar o comando, as distribuições do Docker também serão desligadas e o Docker Desktop mostrará uma notificação ao lado 
+    do relógio perguntando se você quer iniciar as distribuições dele novamente, 
+    se você não aceitar terá que iniciar o Docker novamente com o ícone perto do relógio do Windows).

@@ -1,0 +1,34 @@
+OBJETVIOS
+
+* O que são containers
+
+* Como funcionam os containers
+
+* Como o Docker funcionam
+
+* Principais comandos utilizando Docker
+
+* Dockerfile
+
+* Trabalhando com imagens Docker
+
+
+O que são containers?
+
+Um container é um padrão de unidade de software que empacota código e toda as dependências de uma aplicação fazendo aque a mesma seja
+executada rapidamente de forma confiável de um ambiente computacional para outro.
+
+O que isso significa?
+
+...resposta genérica =)
+
+
+
+DOCKERFILE - Serve para construir as imagens dos nossos containers
+
+FROM: ImageName
+
+RUN: Comandos ex: apt-get install
+
+EXPOSE: 8000 - Expo portas
+

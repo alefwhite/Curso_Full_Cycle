@@ -1,0 +1,166 @@
+Windows Subsystem for Linux 
+
+====================================================================================================================
+WSL 1
+
+* Ambiente linux embarcado dentro do windows
+
+* Acesso a quase todos os comandos linux
+
+* Acesso aos drivers C, D e etc.
+
+Problemas 
+
+* Não ter kernel completo do linux;
+
+* Desempenho ruim rodando aplicações dentro do linux
+
+* Não ter suporte ao Dockerfile
+
+* Vários problemas de compatibilidade com programas e ferramentas
+
+====================================================================================================================
+WSL 2
+
+* Execução completa do kernel do linux
+
+* Manipulação através do terminal, não a GUI.
+
+* Grande desempenho executando aplicativos dentro do linux
+
+
+Como rodar o Docket WSL2 ?
+
+Baixe e instale o Docket Desktop e habilite o WSL 2 nele.
+
+
+Acesse o guia de instalação do WSL2 e do Docker
+
+https://github.com/codeedu/wsl2-docker-quickstart
+
+
+====================================================================================================================
+Instalação do WSL 2
+
+Windows 10
+
+Habilitar o Virtual Machine Platform
+Execute os seguintes comandos no PowerShell em modo administrador:
+
+dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+
+Abra o PowerShell e digite o comando wsl, se não funcionar reinicie sua máquina.
+
+Instalar o executável do WSL
+Baixe o Kernel do WSL 2 neste link: https://docs.microsoft.com/pt-br/windows/wsl/wsl2-kernel e instale o pacote.
+
+
+1. Baixar o pacote mais recente:
+
+Pacote de atualização do kernel do Linux do WSL2 para computadores x64
+
+É um pacote super leve e é só dar next next
+
+Atribuir a versão default do WSL para a versão 2
+A versão 1 do WSL é a padrão no momento, atribua a versão default para a versão 2, assim todas as distribuições Linux instaladas serão já por default da versão 2. Execute o comando com o PowerShell:
+
+wsl --set-default-version 2
+
+Agora devemos ir até a microsoft store e escolher a distro do linux que desejarmos
+
+No caso do curso foi recomendado o Ubuntu sem a versão que é feito pela CanoniCAL Group
+
+ls /mnt - Lista todos os drivers
+
+/home/alefwhite - Diretorio recomendado para desenvolver pois tera mais performace
+
+
+====================================================================================================================
+
+Dicas e truques com WSL 2 e Windows terminal
+
+Agora devemos ir até a microsoft store e pesquisar e baixar o Windows Terminal
+
+Windows terminal vai nos ajudar pois ele tem o recurso de varias abas de terminal
+
+Depois podemos pegar essa configurações do professor e incluir no nosso Windows Terminal
+
+https://github.com/codeedu/wsl2-docker-quickstart/blob/main/windows-terminal-settings.json
+
+Não podemos esquecer de mudar o diretorio no arquivo e apontar para o que criamos no Ubuntu
+
+O que o WSL 2 pode usar de recursos da sua máquina
+Podemos dizer que o WSL 2 tem acesso quase que total ao recursos de sua máquina. Ele tem acesso por padrão:
+
+A todo disco rígido.
+A usar completamente os recursos de processamento.
+A usar 80% da memória RAM disponível.
+A usar 25% da memória disponível para SWAP.
+Isto pode não ser interessante, uma vez que o WSL 2 pode usar praticamente todos os recursos de sua máquina, mas podemos configurar limites.
+
+Crie um arquivo chamado .wslconfig na raiz da sua pasta de usuário (C:\Users\<seu_usuario>) e defina estas configurações:
+
+[wsl2]
+memory=8GB
+processors=4
+swap=2GB
+
+Usei
+[wsl2]
+memory=4GB
+processors=2
+swap=1GB
+
+Agora se abrirmos o terminal do bash e digitarmos o comando - cat .wslconfig ele mostrar as configs
+
+Estes são limites de exemplo e as configurações mais básicas a serem utilizadas, 
+configure-os às suas disponibilidades. Para mais detalhes veja esta documentação da Microsoft: 
+https://docs.microsoft.com/pt-br/windows/wsl/wsl-config#wsl-2-settings.
+
+Para aplicar estas configurações é necessário reiniciar as distribuições Linux, 
+então sugerimos executar no PowerShell o comando: wsl --shutdown (Este comando vai desligar todas as instâncias WSL 2 ativas e basta abrir o terminal novamente para usa-la já com as novas configurações).
+
+Como acessar arquivos do Windows pelo Linux
+
+cd /mnt
+
+ls
+=============
+cd /media
+
+ls
+==============
+Copiar um arquivo do Linux para o Windows
+
+cp /home/alefwhite /mnt/c/Users/user/Documents
+
+
+Ou podemos acessar pelo explorador de arquivos e digitar //wsl$
+
+Ou digitar no terminal explorer.exe .
+
+====================================================================================================================
+
+Antes de abrir qualquer projeto no vscode podemos instalar uma extensão chamada Remote Development
+
+====================================================================================================================
+Agora se tivermos no PowerShell e quisermos ver o status das nossas instancias
+
+wsl -l -v
+
+Para parar todas as distros wsl --shutdown
+
+====================================================================================================================
+Backup com WSL 2
+
+Temos uma forma muito simples de fazermos backup do nosso wsl 2
+
+Executar
+Windows + R
+
+%appData%
+
+Podemos copiar um arquivo que tem a extensão vhdx que tem uma imagem de disco e ele fica no caminho abaixo:
+
+AppData\Local\Packages\CanonicalGroupLimited.Ubuntu_hash_gerada\LocalState

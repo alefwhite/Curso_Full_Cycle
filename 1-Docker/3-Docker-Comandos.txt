@@ -1,0 +1,34 @@
+1 - docker ps - Lista os containers que estão rodando
+
+2 - Criando o primeiro container com a imagem do hello-world
+    docker run hello-world - Caso a imagem não exista no pc ele irá baixar do docker hub
+
+3 - docker ps -a - Lista todos os containers ativos e os que já rodaram e estão paradoss
+
+4 - Após rodarmos o container do hello-world que simplesmente ele executa um binário /hello listado na aba COMMAND
+    ele da o log da mensagem e depois morre e no final ele deixa fala para rodar o seguinte comando abaixo:
+
+    docker run -it ubuntu bash
+    -i - É o modo iterativo que vai manter o processo ativo, vai atachar o nosso terminal com o contêiner que no caso vai ser o bash
+    -t - Ele vai liberar o terminal para que possamos digitar comandos dentro do contêiner
+    O bash é um comando que passamos para o docker executar que nesse caso ele vai executar o terminal bash e vai manter o contêiner
+    ativo.
+    Caso eu queira sair do meu contêiner basta digitar CRTL + D
+
+    Explicação da documentação do Docker
+    docker run --name test -it debian bash
+    Este exemplo executa um contêiner chamado test usando a debian:latest imagem. 
+    O -it instrui o Docker a alocar um pseudo-TTY conectado ao stdin do contêiner; criando um bashshell interativo no contêiner. 
+    No exemplo, o bashshell é encerrado digitando exit 13. Esse código de saída é passado para o chamador de docker run
+    e é registrado nos test metadados do contêiner.
+
+
+    Para rodar o container novamente podemos executar o comando
+        docker ps -a - Lista os containers e podemos pegar o nome ou o id
+        docker start id_do_container ou nome_do_container 
+
+    Para parar o container
+        docker stop id_do_container ou nome_do_container 
+    
+    docker run -it --rm ubuntu bash
+    --rm - Ele vai executar o contêiner e abrir a interação e quando eu sair do container ele vai deletar esse container

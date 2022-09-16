@@ -1,3 +1,4 @@
+# Hello World e Executando o Ubuntu
 1 - docker ps - Lista os containers que estão rodando
 
 2 - Criando o primeiro container com a imagem do hello-world
@@ -32,3 +33,7 @@
     
     docker run -it --rm ubuntu bash
     --rm - Ele vai executar o contêiner e abrir a interação e quando eu sair do container ele vai deletar esse container
+
+#=====================================================================================================================================
+
+Publicando porta com o servidor nginx

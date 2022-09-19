@@ -37,3 +37,29 @@
 #=====================================================================================================================================
 
 Publicando porta com o servidor nginx
+
+docker run -p 8080:80 nginx
+
+-p -> Seria a forma de espelhar uma porta do docker para a máquina em que ele está sendo executado
+
+8080:80 -> O 8080 seria a porta que escolhemos rodar da nossa máquina e o docker vai redirecionar para a 80 do container
+
+
+docker run -d -p 8080:80 nginx
+
+-d -> É uma forma de rodarmos o container de modo desatachado, isso faz com que nosso terminal não fique preso 
+pois ele não deixa o terminal ficar preso no processo do container, senão tiver essa flag ele fica rodando o processo e se
+apertamos crtl + c ele vai deligar o container
+
+#=====================================================================================================================================
+
+Removendo Containers
+
+docker ps - Vai mostrar os container que estão rodando
+
+docker ps -a - Vai mostrar os containers desligados
+
+docker rm + id_do_container ou nome_do_container -> Vai deletar o container que não está rodando
+
+docker rm + id_do_container ou nome_do_container -f -> Vai deletar o container que está rodando, pois o -f significa force
+

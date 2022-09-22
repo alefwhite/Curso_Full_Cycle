@@ -126,8 +126,15 @@ docker volume ls
 
 Criando um volume
     docker volume create meuvolume
+
+Listar volumes    
     docker volume ls
+
+Inspecionar volume
     docker volume inspect meuvolume
+
+Remover um volume 
+ docker volume rm meuvolume
 
 
 docker run --name nginx -d -p 8080:80 --mount type=volume,source=meuvolume,target=/app nginx

@@ -63,3 +63,101 @@ docker rm + id_do_container ou nome_do_container -> Vai deletar o container que 
 
 docker rm + id_do_container ou nome_do_container -f -> Vai deletar o container que está rodando, pois o -f significa force
 
+#=====================================================================================================================================
+
+Acessando e alterando arquivos de um container
+
+docker run --name nginx -d -p 8080:80 nginx 
+    -> --name nome_do_container da um nome para o container caso não seja informado ele gera um nome
+        aleatório
+
+
+docker exec nome_do_container comando_desejado -> Executa um comando no nosso container
+
+    docker exec nginx ls
+
+    docker exec -it nginx bash -> Entrando no container nginx no modo interativo para mexer no terminal bash
+        cd /usr/share/nginx/html/ -> Entrando no diretorio do nginx
+        ls -> Listando os arquivos
+        apt-get update
+        apt-get install vim -> Instalando o vim
+        vim index.html -> Dentro do diretorio do nginx executar o vim para que seja possivel modificar o arquivo
+        por padrão o vim abre o arquivo somente para leitura, para que seja possivel editar o arquivo devemos digitar i,
+        agora podemos modificar alguma coisa no html e depois apertar a tecla esc para sair do modo de edição.
+        agora para gravarmos essa modificação devemos apertar a tecla SHIFT + : e depois W
+        para sair do vim podemos digitar : q
+        é possivel também sair sem gravar a alteração apertando : ! e gravando : wq
+        CRTL + D - sai do container
+
+Caso eu mate meu container eu irei perder todas as alterações feitas nele então no tópico abaixo veremos uma forma de salvar essas
+alterações mesmo que o container morra
+#=====================================================================================================================================
+
+Iniciando com bind mounts
+
+Agora no terminal do ubuntu podemos voltar até o diretorio raiz e criarmos uma pasta Projects e dentro dela fullcyle e criamos um
+arquivo index.html -> touch index.html depois podemos dar um vim index.html criar um h1 e colocar qualquer informação
+
+docker run -d --name nginx -p 8080:80 -v caminho_desejado 
+    -> -v vai montar um volume para o container, mais é um comando antigo
+
+docker run -d --name nginx -p 8080:80 -v ~/Projects/fullcyle:/usr/share/ngnix/html nginx
+    -> O caminho antes do dois pontos é uma pasta do computador que desejamos criar no container
+    -> O caminho depois dos dois pontos é o caminho onde queremos que a pasta seja criada
+
+Dessa forma se matarmos nosso container se tivermos arquivos dentro da pasta que foi espelhada eles não serão deletados
+
+Forma mais atual de espelharmos uma pasta do computador para o container
+    docker run -d --name nginx -p 8080:80 --mount type=bind,source=~/Projects/fullcyle:/usr/share/ngnix/html nginx
+    docker run -d --name nginx -p 8080:80 --mount type=bind,source="$(pwd)"/html,target=/usr/share/nginx/html nginx 
+        -> Podemos dar um echo $(pwd) no terminal para vermos o caminho todo
+        -> $(pwd) ele pega o caminho que estamos apontado no terminal   
+
+
+A diferença entre o -v e o --mount é que se eu passar um caminho que tenha um pasta que não exista ele dará um erro agora 
+o -v ele criará essa pasta que não existe 
+
+#=====================================================================================================================================
+
+Trabalhando com volumes
+
+docker volume
+docker volume ls
+
+Criando um volume
+    docker volume create meuvolume
+    docker volume ls
+    docker volume inspect meuvolume
+
+
+docker run --name nginx -d -p 8080:80 --mount type=volume,source=meuvolume,target=/app nginx
+
+Agora podemos entrar no terminal do nosso container nginx
+    docker exec -it nginx bash
+    cd /app/
+    ls
+    touch oi
+    CTRL + D
+
+
+Agora podemos criar um container nginx2
+    docker run --name nginx2 -d -p 8081:80 --mount type=volume,source=meuvolume,target=/app nginx
+
+Agora podemos entrar no terminal do nosso container nginx2
+    docker exec -it nginx2 bash
+    cd /app/
+    ls
+
+E nesse caso veremos que o arquivo oi que foi criado no container nginx também aparece no container nginx2 por conta do volume
+
+Agora podemos criar um container nginx3 e usar o comando -v
+    docker run --name nginx3 -d -p 8082:80 -v meuvolume:/app nginx
+    docker exec -it nginx3 bash
+    cd /app/
+    ls
+
+Caso eu tenho alguns volumes com alguns arquivos que não estão sendo usados e ocupando capacidade do meu computador eu posso digitar
+o seguinte comando -> docker volume prune -> y
+#=====================================================================================================================================
+
+Trabalhando com Imagens

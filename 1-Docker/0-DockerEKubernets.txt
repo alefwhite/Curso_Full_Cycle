@@ -1,0 +1,787 @@
+hub.docker.com - Site oficial do docker onde fica armazenados as imagens | Lá consigo visualizar a documentação da imagem
+========================================================================================================================================================================
+docker container ls ou docker ps | Lista os containers que estão em execução
+docker container ls -a ou docker ps -a | Lista todos os containers
+
+docker container rm -f Id_do_container_OU_Nome | Deleta o container mesmo se ele estiver em execução por causa da flag -f
+docker container rm Id_do_container_OU_Nome | Deleta um container que não esteja em execução
+=======================================================================================================================================================================
+Criando um container para o mongodb
+
+docker container run -d -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=mongouser -e MONGO_INITDB_ROOT_PASSWORD=mongopwd mongo | Comando que criar um container do mongodb
+-p = Porta | -e Variavel de ambiente da imagem que precisa ser configurada | mongo Nome da imagem oficial do mongodb
+
+docker container run --name nome_do_container NOME_DA_IMAGEM_DESEJADA
+docker container run --name MongoDB -d -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=mongodbuser -e MONGO_INITDB_PASSWORD=mongopass mongo:4.4.6
+
+docker stop NOME_DO_CONTAINER_OU_ID_DO_CONTAINER | Desliga o container
+dokcer start NOME_DO_CONTAINER_OU_ID_DO_CONTAINER  | Liga o container
+========================================================================================================================================================================
+Criando um container para o ubuntu
+
+docker container run -it /bin/bash
+-t = Habilita o modo interativo do ubuntu, irá abrir o terminal assim que o container for criado
+/bin/bash = Estou dizendo para o docker que eu quero usar o bash para interagir com o ubuntu
+exit = Para sair do terminal e desliga o container
+========================================================================================================================================================================
+Criando um container para o nginx
+
+NGINX - É um servidor web
+
+docker container run -d nginx 
+-d = Faz com que o container rode em background(modo daemon) e não prenda nosso terminal com dados de saida do nginx
+
+Utilizando Port Bind = Ele irá criar um vinculo com a minha porta local com a do container
+docker container run -d -p 8080:80 nginx
+-p 8080 Minha porta local | :80 Porta do container | Dessa forma estamos rodando o servidor pelo container como se fosse local
+
+========================================================================================================================================================================
+Comandos de Troubleshooting
+
+docker container inspect | Comando para inspecionar o container, ver mais detalhes do que tem no container quando tivermos problemas nele
+docker container exec it ID_DO_CONTAINER /bin/bash | Ele irá habilitar o terminal do container quando precisarmos executar algum comando no container
+docker container logs ID_DO_CONTAINER_OU_NOME | Podemos usar esse comando para verificar os logs
+docker container logs -n 5 ID_DO_CONTAINER_OU_NOME | Com o -n 5 ele pega os ultimos 5 logs 
+========================================================================================================================================================================
+Introdução a criação de imagens docker
+
+Temos duas formas de construir uma imagem de docker | DOCKER COMMIT - DOCKERFILE
+
+DOCKER COMMIT - Ele cria uma imagem baseada em um container, então devemos criar um container para depois criar a imagem Obs: Não é uma prática recomendada
+
+Criação de uma imagem usando docker commmit
+	1 - Criando um container ubuntu - docker container run -it ubuntu /bin/bash 
+	2 - Atualizando os pacotes - apt-get update
+	3 - Instalando o curl - apt-get install curl --yes
+	4 - Verificando a instalação - curl
+ 	5 - Saindo do container - exit
+	6 - Listando todos os containers criados - docker container ls -a
+	7 - Criando a imagem - docker commit ID_DO_CONTAINER_OU_NOME NOME_DA_IMAGEM Ex: ubuntu-curl-commit
+	8 - Listando as imagens - docker image ls
+	9 - Criando um container apartir da nossa imagem criada - docker container run -it ubuntu-curl-commit /bin/bash
+
+DOCKERFILE - O Dockerfile nada mais é do que um meio que utilizamos para criar nossas próprias imagens. Em outras palavras, ele serve como a receita para construir um container, 
+permitindo definir um ambiente personalizado e próprio para meu projeto pessoal ou empresarial.
+
+Criação de uma imagem usando dockerfile	
+	1 - Abrir o vsocde e criar um arquivo Dockerfile
+	2 - Primeira instrução no dockerfile deve ser a imagem que queremos usar - Ex FROM ubuntu
+	3 - Segunda instrução podemos colocar alguns comandos que queremos executar no container - Ex: RUN apt-get update - RUN apt-get install curl --yes - RUN apt-get install vim --yes	
+
+	FROM ubuntu
+	RUN apt-get update
+	RUN apt-get install curl --yes 
+	RUN apt-get install vim --yes
+	
+Após a criação do nosso dockerfile devemos entrar no diretorio do arquivo pelo terminal e executar o seguinte comando abaixo
+	docker image build -t NOME_DA_IMAGEM CONTEXTO(diretorio onde está o arquivo dockerfile) - Ex: docker image build -t ubuntu-curl-file .
+
+Agora podemos executar o comando - docker image ls - Para podermos saber se a imagem foi criada corretamente
+	
+Observação: Caso tenhamos criado uma imagem anteriormente apartir do dockerfile e depois tivermos que criar outra imagem ele usará do cache
+porém pode nos causar problemas pois dependendo do que tiver sido instalado ficará um versão desuatualizada como por exemplo o do vim
+
+Então para não termos esse problema do cache podemos usar todas as instruções concatenadas - RUN apt-get update && apt-get install curl --yes && apt-get install vim --yes
+	FROM ubuntu
+	RUN apt-get update && apt-get install curl --yes && apt-get install vim --yes
+		ou
+	RUN apt-get update && \
+	    apt-get install curl --yes && \
+	    apt-get install vim --yes
+	
+
+Temos duas formas para listar nossas imagens - docker image ls | docker image prune - irá limpar as imagens que não estão sendo usada
+
+Deletar uma imagem - docker image rm ID_DA_IMAGEM_OU_NOME
+
+Verificar os dados da imagem - docker image inspect
+Mostra o histórico de criação da imagem - docker imagem history ID_DA_IMAGEM_OU_NOME
+========================================================================================================================================================================
+Possibilidades com Docker
+	
+	OPÇÕES DE USO NO DOCKERFILE
+		FROM => Inicializa o build de uma imagem a partir de uma imagem base
+		RUN => Executa um comando
+		LABEL => Adiciona metadados a imagem
+		CMD => Define o comando e/ou os parâmetros padrão
+		EXPOSE => Define que o container precisa expor a porta em questão
+		ARG => Define um argumento pra ser usado no processo de construção
+		ENV => Define as variáveis de ambiente
+		ADD => Copia arquivos ou diretórios e adiciona ao sistema de arquivos da imagem
+		ENTRYPOINT => Ajuda você a configurar uma contêiner que poder ser executado com um executável
+		VOLUME => Define volumes que devem ser definidos
+		WORKDIR => Define o seu diretório corrente
+
+
+========================================================================================================================================================================
+Iniciando a primeira a aplicação - No treinamento foi fornecido um repositório com um simples projeto em nodejs com ejs
+	1 - Instalar as dependencias - yarn ou npm i
+	2 - Criar o arquivo dockerfile dentro da pasta da aplicação
+	3 - Criando a receita do nosso dockerfile
+	4 - Ir até o dockerhub e procurar uma imagem oficial do nodejs	
+	
+		FROM node
+		WORKDIR /app | Criando o diretorio de trabalho
+		COPY package*.json ./ | Copiando os arquivos package.json e package-lock.json ./ -> Diretório corrente
+		RUN npm install | Executando a instalação das dependencias
+		COPY . . | Copiando os arquivos restantes da aplicação
+		EXPOSE 8080 | Expondo a porta 8080 para o node
+		CMD ["node", "server.js"] | Comando de inicialização do container, ele irá ser executado assim que terminar de criar o container
+	
+	5 - Agora no terminal devemos executar o seguinte comando - docker image build -t coversão-temperatura .
+	6 - Criando o container - docker container run -p 8080:8080 conversao-temperatura
+	7 - Listando o container - docker container ls
+	8 - Testando a aplicação - No browser http://localhost:8080/
+========================================================================================================================================================================
+Boa práticas para construção de imagens docker
+
+Nomeando sua imagem docker  - alef/api-conversao:v1
+		Namespace - alef -> nome de quem pertence a imagem
+		Repositório - api-conversao -> Repositório da imagem
+		Tag - v1 -> Versão da imagem
+
+docker image build -t alef/coversão-temperatura:v1 .
+
+Quando a imagem não tiver um Namespace ela é uma imagem oficial que pertence ao próprio docker Ex: ubuntu:20.10
+
+Preferência a imagens oficiais - Devemos tomar cuidado ao baixar as imagens pois podemos encontar imagens com códigos maliciosos, então sempre devemos baixar de alguem
+de confiança ou a imagem oficial do docker
+
+Sempre especificar a tag nas imagens - Exemplo: FROM node:14.17.5 - Caso deixarmos assim FROM node ele irá pegar a versão latest 
+		FROM node:14.17.5
+		WORKDIR /app 
+		COPY package*.json ./
+		RUN npm install 
+		COPY . . 
+		EXPOSE 8080 
+		CMD ["node", "server.js"] 
+
+docker image build -t alef/coversão-temperatura:v1 .
+
+
+Um processo por container para não perder escalabilidade 
+  Ex: Em um container só (RabbitMQ - NODEJS - MARIADB) - Não recomendado
+  Ex: Separado em containers RabbitMQ, NODEJS E MARIADB - Recomendado, Ai nesse caso teremos vários containers se comunicando e formando a nossa solução (Separando em Microserviços)
+
+
+Utilizar sempre o .dockerignore - Exemplo: node_modules/
+
+COPY VS ADD | O add é recomendado quando precisamos descompactar algo ou pegar um arquivo de uma URL caso não precisarmos fazer esse processo devemos utilizar o COPY
+ENTRYPOINT VS CMD | Os dois podem ser utilizados para inicializar um container, porém a diferença do entrypoint para o cmd é que ele é imutavel não temos como sobrescrever
+algum comando que seja executado como por exemplo se tiver um arquivo sh com uma mensagem echo "Hello World" não conseguiriamos mudar para echo "Hello", 
+agora o cmd consegue sobreescrever na execução do container e também podemos/ utiliza-los juntos por exemplo o entrypoint passar parametros para o CMD
+	Usando CMD E ENTRYPOINT JUNTOS
+
+Exemplo de uma imagem de container com uma complexidade maior de execução, então é bem comum ter um arquivo sh para fazer essa execução 
+		
+		FROM ubuntu
+		WORKDIR /app
+		COPY ./entrypoint.sh ./entrypoint.sh
+		RUN chmod +x ./entrypoint.sh
+		CMD ["./entrypoint.sh"]
+	
+Combinando o ENTRYPOINT com o CMD
+No arquivo entrypoint.sh contendo o seguinte comando abaixo
+	#!bin/bash
+	if [ -z $1 ]
+	then
+	   echo "Iniciando o container sem nada"
+        else
+	   echo "Iniciando com o parametro $1"	
+	fi
+
+docker container run alef/ubuntu-start:entry  
+docker container run alef/ubuntu-start:entry teste 	
+
+Quando usar o entrypoint ou cmd - Usamos o entrypoint quando não iremos mudar a inicialização do nosso container
+
+Usando argumentos na construção de imagens
+	DOCKERFILE
+	
+	ARG TAG=latest
+	FROM ubuntu:$TAG
+	RUN apt-get update && \
+	    apt-get install curl --yes 	
+
+docker build -t alef/ubuntu-arg:v1 --build-arg TAG="18.04" .
+
+
+Multistage Build
+
+Tipos de Linguagem de Programação
+	. Interpretadas
+	. Compiladas
+	. JIT (Just in Time) 
+
+Se você usa linguagens compiladas (Golang, Java) e está buscando uma forma eficiente de reduzir o tamanho das suas imagens docker, 
+está no lugar certo. Mas antes de decidir utilizar imagens pequenas, precisamos entender o real impacto do uso das imagens grandes.
+Esse impacto pode ser maior que o imaginado em ambientes de alta volumetria.
+
+Cenário:
+Uma aplicação utiliza uma imagem docker de 1GB.
+Essa aplicação está em um cluster de 100 nós.
+No cenário descrito acima, imagine que a aplicação recebe uma volumetria inesperada e vai escalar automaticamente de 1 para 100 containers.
+
+Isso significa que o cluster todo vai trafegar até 99GB de informação, fazendo pull (download) da imagem docker em cada nó que ainda não a tem disponível.
+
+Pra piorar a situação, resolvemos fazer deploy de uma nova versão com a aplicação escalada, ou seja, todas as imagens serão substituídas nesse processo (~100GB).
+
+Resultado:
+Altas taxas de transferência
+Concorrência de banda entre pull de imagens e usuários
+Escalabilidade afetada
+Para tentar resolver essa questão, vamos falar de Docker multistage, que apesar de ser uma funcionalidade bastante conhecida na comunidade, 
+ainda gera dúvidas em alguns dos nossos clientes.
+
+Antes da prática, vamos entender a teoria do uso de Multi Stage para o nosso caso:
+
+imagine que o processo de build de uma aplicação precise atender uma série de dependências. 
+Essas dependências criam camadas que fazem a imagem docker ficar cada vez maior.
+
+Com o uso de Multi Stage, temos a possibilidade de utilizar imagens diferentes entre o processo de build e o processo de execução do binário. 
+O resultado disso é uma imagem significativamente menor, 
+já que as camadas anteriores são ‘descartadas’, restando somente o binário para execução em uma imagem enxuta.
+
+No dockerfile
+	
+	FROM golang:1.7.3
+	WORKDIR /app
+	COPY main.go .
+	RUN CGO_ENABLED=0 GOOS=linux go build -a -installlsuffix cgo -o main
+	CMD ["./main"]
+
+docker build -t alef/go-app:simples . 
+docker cotaniner run alef/go-app:simples 
+docker imagem ls - Nesse caso a imagem ficou um pouco grande (600mb) então devemos seguir os passos abaixo
+
+No dockerfile
+	
+	Imagem intermediaria montando o build da aplicação
+
+	FROM golang:1.7.3 as build
+	WORKDIR /app
+	COPY main.go .
+	RUN CGO_ENABLED=0 GOOS=linux go build -a -installlsuffix cgo -o main
+	
+	Imagem final
+
+	FROM alpine:3.14 as final
+	WORKDIR /app
+	COPY --from=build /app/main .
+	CMD ["./main"]	
+
+docker build -t alef/go-app:multi .
+docker imagem ls - Nessa caso a imagem ficou com 7mb
+docker container run alef/go-app:multi
+
+DOCKER REGISTRY - Repositório de imagens que podemos enviar para executar nossos containers na nuvem
+
+No docker registry podemos criar uma conta e subir quantas imagens públic quisermos e temos direito a uma imagem privada
+
+Outras opções de Registry das imagens docker
+	
+	. Docker HUB
+	. Elastic Container Registry - AWS
+	. Azure Container Registry
+	. Google Container Registry
+	. Harbor
+
+
+SUBINDO A IMAGEM PARA O DOCKER REGISTRY 
+	1 - Fazer o cadastro
+	2 - docker image ls
+	3 - Autenticar com o nosso docker ID 
+	4 - docker login |Irá pedir o usuário e senha
+	5 - docker push (NOME DA IMAGEM) -> alef/conversao-temperatura:v1 
+	6 - docker tag alef/conversao-temperatura:latest
+	7 - docker image ls
+	8 - docker push alef/conversao-temperatura:latest
+
+Testando nossa imagem
+
+docker imagem rm alef/conversao-temperatura:v1
+docker imagem rm alef/conversao-temperatura:latest
+docker image ls
+docker image prune
+
+Criando o container a partir da nossa imagem do repositório
+	docker container run -d -p 8080:8080 alef/conversao-temperatura:v1
+
+========================================================================================================================================================================
+docker attach  – Acessar dentro do container e trabalhar a partir dele.
+docker build   – A partir de instruções de um arquivo Dockerfile eu possa criar uma imagem.
+docker commit  – Cria uma imagem a partir de um container.
+docker cp      – Copia arquivos ou diretórios do container para o host.
+docker create  – Cria um novo container.
+docker diff    – Exibe as alterações feitas no filesystem do container.
+docker events  – Exibe os eventos do container em tempo real.
+docker exec    – Executa uma instrução dentro do container que está rodando sem precisar atachar nele.
+docker export  – Exporta um container para um arquivo .tar.
+docker history – Exibe o histórico de comandos que foram executados dentro do container.
+docker images  – Lista as imagens disponíveis no host.
+docker import  – Importa uma imagem .tar para o host.
+docker info    – Exibe as informações sobre o host.
+docker inspect – Exibe r o json com todas as configurações do container.
+docker kill    – Da Poweroff no container.
+docker load    – Carrega a imagem de um arquivo .tar.
+docker login   – Registra ou faz o login em um servidor de registry.
+docker logout  – Faz o logout de um servidor de registry.
+docker logs    – Exibe os logs de um container.
+docker port    – Abre uma porta do host e do container.
+docker network – Gerenciamento das redes do Docker.
+docker node    – Gerenciamento dos nodes do Docker Swarm.
+docker pause   – Pausa o container.
+docker port    – Lista as portas mapeadas de um container.
+docker ps      – Lista todos os containers.
+docker pull    – Faz o pull de uma imagem a partir de um servidor de registry.
+docker push    – Faz o push de uma imagem a partir de um servidor de registry.
+docker rename  – Renomeia um container existente.
+docker restart – Restarta um container que está rodando ou parado.
+docker rm      – Remove um ou mais containeres.
+docker rmi     – Remove uma ou mais imagens.
+docker run     – Executa um comando em um novo container.
+docker save    – Salva a imagem em um arquivo .tar.
+docker search  – Procura por uma imagem no Docker Hub.
+docker service – Gernciamento dos serviços do Docker.
+docker start   – Inicia um container que esteja parado.
+docker stats   – Exibe informações de uso de CPU, memória e rede.
+docker stop    – Para um container que esteja rodando.
+docker swarm   – Clusterização das aplicações em uma orquestração de várias containers, aplicações junto.
+docker tag     – Coloca tag em uma imagem para o repositorio.
+docker top     – Exibe os processos rodando em um container.
+docker unpause – Inicia um container que está em pause.
+docker update  – Atualiza a configuração de um ou mais containers.
+docker version – Exibe as versões de API, Client e Server do host.
+docker volume  – Gerenciamento dos volumes no Docker.
+docker wait    – Aguarda o retorno da execução de um container para iniciar esse container.
+
+Obs.: É possível ver todos os comandos que o Docker possui, tendo o docker instalado, basta digitar no terminal docker --help
+========================================================================================================================================================================
+
+Kubernetes é um sistema de orquestração de contêineres open-source que automatiza a implantação, 
+o dimensionamento e a gestão de aplicações em contêineres. 
+Ele foi originalmente projetado pelo Google e agora é mantido pela Cloud Native Computing Foundation.
+
+Formas de Criar um Cluster Kubernete
+	On-Premisse - Não recomendado quando a equipe for pequena
+		.Kubeadm
+		.Kubeespray
+		.RKE
+		.K3S
+		.MICROK8S 
+
+	Kubernetes as Service - Ex: AWS - Recomendado quando a equipe for pequena - utilizarmos um serviço em cloud de kubernetes
+		.AKS
+		.EKS
+		.GKE
+			
+	Local
+		.MINIKUBE
+		.KIND
+		.K3D
+		.MICROK8S
+		.K3S	
+
+KIND - KUBERNETES IN DOCKER
+
+Seguir o passo a passo e instalar o choco -> https://chocolatey.org/install
+
+INSTALAÇÃO DO KIND - https://kind.sigs.k8s.io/
+choco install kind
+
+
+KUBECTL - Serve para executar os comandos do kubernetes -> https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/
+choco install kubernetes-cli
+
+===================================================================================================================================================
+
+CRIANDO O CLUSTER COM KIND
+
+Executar o comando "kind" para ver se foi instalado corretamente
+Executar o comando "kubectl" para ver se foi instalado corretamente
+
+
+Criando o cluster - kind create cluster | Criando o cluster kubernetes 
+
+Acessando o arquivo de configuração kubectl que é o arquivo para acessar o cluster kubernete - code C:\Users\User\.kube
+Não precisamos nos preocupar com esse arquivo pois o kind configura ele para a gente
+
+Listando os nodes do cluster
+kubectl get nodes
+
+Nós (Nodes)
+Um Pod sempre será executando em um Nó. Um Nó é uma máquina de processamento em um cluster Kubernetes e pode ser uma máquina física ou virtual. 
+Cada Nó é gerenciado pelo Control Plane. Um Nó pode possuir múltiplos Pods e o Control Plane do Kubernetes gerencia automaticamente 
+o agendamento dos Pods nos nós do cluster. Para o agendamento automático dos Pods, o Control Plane leva em consideração os recursos disponíveis em cada Nó.
+
+O que é um pod?
+Pods são os menores e mais básicos objetos implantáveis no Kubernetes. Um pod representa uma única instância de um processo em execução no seu cluster.
+Os pods contêm um ou mais contêineres, como os Docker. Quando um pod executa vários contêineres, 
+eles são gerenciados como uma única entidade e compartilham os recursos do pod. Geralmente, executar vários contêineres em um único pod é um caso de uso avançado.
+Os pods também contêm recursos compartilhados de rede e armazenamento para os contêineres:
+Rede: endereços IP exclusivos são atribuídos automaticamente aos pods. Os contêineres do pod compartilham o mesmo namespace da rede, 
+incluindo o endereço IP e as portas de rede. Os contêineres em um pod se comunicam entre si dentro do pod em localhost.
+Armazenamento: os pods podem especificar um conjunto de volumes de armazenamento compartilhado que pode ser compartilhado entre os contêineres.
+Pense em um pod como um "host lógico" autônomo e isolado que contém as necessidades sistêmicas do aplicativo que ele veicula.
+Um pod destina-se a executar uma única instância do seu aplicativo em seu cluster. No entanto, não é recomendado criar pods individuais diretamente. 
+Em vez disso, geralmente cria-se um conjunto de pods idênticos, chamado réplicas, para executar o aplicativo. Esse conjunto é criado e gerenciado por um controlador, 
+como o de implantação. Os controladores gerenciam o ciclo de vida dos pods constituintes e também podem executar escalonamento horizontal, 
+alterando o número de pods conforme necessário.
+De vez em quanto, você pode interagir com pods de maneira direta para depurar, solucionar problemas ou inspecioná-los, 
+mas é altamente recomendável usar um controlador para gerenciá-los.
+Os pods são executados em nodes no cluster. Depois de criado, ele permanece no node até que o processo seja concluído, 
+o pod seja excluído, removido do node por falta de recursos ou pela falha do node. 
+Se um node falhar, os pods nele serão programados para exclusão automaticamente.
+Cada Nó do Kubernetes executa pelo menos:
+
+Kubectl - o processo responsável pela comunicação entre o Control Plane e o Nó, gerencia os Pods e os contêineres rodando em uma máquina.
+Um runtime de contêiner (por exemplo o Docker) é responsável por baixar a imagem do contêiner de um registro de imagens (por exemplo o Docker Hub), 
+extrair o contêiner e executar a aplicação.
+
+Listando os clusters criados com o kind
+kind get clusters
+
+Podemos ver como foi criado o nosso cluster kubernete com o container docker
+docker container ls
+
+Podemos criar o nosso cluster kubernete de uma forma mais otimizada passando alguns comandos na sua criação
+kind create cluster --name meucluster - depois - kubectl get nodes (Para verificar os nodes do cluster)
+
+Excluindo um cluster
+kind delete cluster --name meucluster
+
+Criando um ambiente mais similar com de produção
+Devemos criar um arquivo chamado cluster.yaml - Podemos usar o vscode para facilitar e incluir as informações abaixo
+	kind: Cluster
+	apiVersion: kind.x-k8s.io/v1alpha4
+	nodes:
+		- role: control-plane
+		- role: control-plane
+		- role: control-plane
+		- role: worker
+		- role: worker
+		- role: worker
+
+No terminal devemos navegar até a pasta do arquivo cluster.yaml e executar o comando abaixo
+kind create --name meucluster --config cluster.yaml
+
+Agora se executarmos o kubectl get nodes veremos mais 6 nodes criados através do arquivo yaml
+
+docker container ls - Veremos o container do load-balancer e os containers dos nodes
+===================================================================================================================================================
+
+ELEMENTOS DE DEPLOY NO KUBERNETES
+
+3 Elementos bases para fazer um deploy no kubernete, Cada um deles tem o seu papel no deploy
+	.POD - Cada POD devemos colocar um pedaço da nossa aplicação
+	   Criando PODS
+		1 - Para criarmos nossos PODS devemos criar nosso arquivo de manifesto que é um yaml que segue o padrão de estrutura dos kubernetes		
+		2 - Nosso vscode podemos instalar a extensão do kubernetes para nos ajudar
+		3 - Agora devemos criar um arquivo chamado meupod.yaml
+		4 - O manifesto do kubernete tem 4 campos obrigatórios
+				apiVersion: v1 | Declaro qual o grupo de recursos que irá ser utilizado do kubernetes, (Qual grupo de apis que será usado)
+							   | Verificando versões das apis que podemos utilizar - kubectl api-resources
+				
+				kind: Pod | Tipo de objeto que estamos criando	
+				
+				metadata:
+					name: meupod | Nome do que daremos ao objeto
+				
+				spec: | Spec terá os containers que iremos incluir no POD 
+				 containers:
+				 	-name: web
+					 image: kubedevio/web-page:blue
+					 ports:
+					 	- containerPort: 80
+				
+				apiVersion: v1
+				kind: Pod
+				metadata: 
+				name: meupod
+				spec:
+				containers:
+					- name: web
+					image: kubedevio/web-page:blue
+					ports:
+						- containerPort: 80      
+
+		5 - Comando que irá aplicar esse manifesto no cluster kubernetes 
+			- kubectl apply -f
+			- kubectl create -f meupod.yaml
+			- kubectl get pods - Lista os PODS | Caso queira ver um pode mais detalhado podemos usar - kubectl describe pod nome_do_pod
+			- kubectl port-forward pod/nome_do_pod 8080:80 | Ele faz o redirecionamento da minha porta local para a porta do POD
+			- Kubectl delete pod nome_do_pod | Deleta o POD no cluster
+
+	.REPLICA SET - Serve como gerenciador do pods nos cluster kubernetes para termos escalabilidade e resiliencia
+
+	Labels e Selectors - Label ficará nos pods  e Selectors nos replicas set
+
+	Utilizando Labels 
+		Arquivo meupod.yaml
+		apiVersion: v1
+		kind: Pod
+		metadata: 
+		name: meupod
+		spec:
+		containers:
+			- name: web
+			image: kubedevio/web-page:blue
+			ports:
+				- containerPort: 80      
+		---
+		apiVersion: v1
+		kind: Pod
+		metadata: 
+		name: meusegundopod
+		labels:
+			app: web
+		spec:
+		containers:
+			- name: web
+			image: kubedevio/web-page:blue
+			ports:
+				- containerPort: 80 
+
+		kubectl apply -f meupod.yaml
+		kubectl get pods
+		kubectl get pods -l app=web - Selecionando um objeto especifico atraves de labels
+
+	
+	Criando um Replica Set
+	Devemos criar uma arquivo yaml e incluir as configurações necessárias
+	
+	1 - Criar um arquivo chamdo meureplicaset.yaml
+
+	2 - Executar o comando para verificarmos a versão do apiversion filtrando pelo nome replicaset - kubectl api-resources | grep replicaset 
+		apiVersion: apps/v1
+
+	3 -  Estrutura do meureplicaset.yaml 
+			apiVersion: apps/v1
+			kind: ReplicaSet
+			metadata:   
+			name: meureplicaset
+			spec:
+			replicas: 1
+			selector:
+				matchLabels:
+				app: web
+				template:
+				metadata:
+					labels: 
+					app: web
+				spec:
+					containers:
+					- name: web
+						image: kubedevio/web-page:blue
+						ports:
+						- containerPort: 80
+	
+	4 - Para executar - kubectl apply -f meureplicaset.yaml 
+
+	5 - kubectl get replicaset
+		kubectl get pods
+		kubectl describe replicaset meureplicaset
+		Caso eu delete um pod e eu tenha definido no arquivo de configuração do meu replicaset que ele deve ter 2 replicas por exemplo
+			replicas: 2
+		kubectl delete pod meuplicaset-algumaCoisa - pq essa parte o replica set gera randomicamente
+		E depois de eu executar kubectl get pods - Ele irá mostrar 2 pods novamente pq ele cria outro automaticamente
+		garantindo a que o numero de replicaset que eu defini seja o mesmo em execução no cluste kubernetes
+
+	6 - Garantindo o gerenciamento de versão dos nossos pods caso mudarmos as versões das imagens em nossos containers
+		Caso eu altere a versão da imagem de -> image: kubedevio/web-page:blue - para -> image: kubedevio/web-page:green
+		E comece a aplicar os mesmo passos novamente de criação do replica set
+		1 - kubectl apply -f meureplicaset.yaml
+		2 - kubectl get replicaset
+		3 - kubectl describe replicaset meureplicaset
+		4 - kubectl get pods
+		5 - kubectl describe pods meuplicaset-alugmaCoisa
+		6 - Iremos observar que o pod ainda estará usando a versão antiga da imagem - kubedevio/web-page:blue
+		7 - kubectl port-forward pod/meuplicaset-algumaCoisa 8080:80
+		9 - localhost:8080 - Veremos que realmente está com a versão antiga
+		10 - Agora se eu deletar o pod ele irá recriar automaticamente usando a nova imagem
+			 1 - kubectl get pods
+			 2 - kubectl delete pod meureplicaset-algumaCoisa 
+			 3 - kubectl get pods - Iremos observar que terá um novo no lugar do que acabamos de deletar
+			 4 - kubectl describe pod meureplicaset-algumaCoisa - Iremos observar que ele foi criado com a imagem nova
+			 5 - kubectl port-forward pod/meuplicaset-algumaCoisa 8080:80
+			 6 - Só que esse não é um processo viavel pq podemos ter uma porrada de pods e sair deletando um por um vai demorar
+			 7 - O cara que vai nos ajudar com esse gerenciamento é o DEPLOYMENT	 		
+
+
+	.DEPLOYMENT
+			1 - Devemos criar um arquivo chamado meudeployment.yaml - Ele segue basicamente a mesma estrutura do ReplicaSet
+				apiVersion: apps/v1
+				kind: Deployment
+				metadata:   
+				name: meudeployment
+				spec:
+				replicas: 1
+				selector:
+					matchLabels:
+					app: web
+					template:
+					metadata:
+						labels: 
+						app: web
+					spec:
+						containers:
+						- name: web
+							image: kubedevio/web-page:blue
+							ports:
+							- containerPort: 80
+
+			2 - Agora devemos executar - kubectl apply -f meudeployment.yaml
+			3 - kubectl get deployment - Lista os deployments
+			4 - kubectl describe deployment meudeployment - Mostrar as informações de configurações do deployment
+			5 - kubectl get replicaset - Iremos observar que foi criado automaticamente um replicaset do deployment
+			6 - Caso alteremos nosso arquivo yaml do deployment para que ele crie 6 replicas conforme o exemplo abaixo	
+					apiVersion: apps/v1
+					kind: Deployment
+					metadata:   
+					name: meudeployment
+					spec:
+					replicas: 6
+					selector:
+						matchLabels:
+						app: web
+						template:
+						metadata:
+							labels: 
+							app: web
+						spec:
+							containers:
+							- name: web
+								image: kubedevio/web-page:blue
+								ports:
+								- containerPort: 80
+			
+			7 - Caso ocorra algum problema no novo deployment podemos dar um rollback para a versão anterior dele
+				kubectl rollout history deployment meudeployment - Irá lista todas as versões desse deployment
+				kubectl rollout undo deployment meudeployment - Irá voltar para a versão anterior do deployment atual
+
+	.SERVICES - Será o meio de comunicação com os pods para que possamos ter o balacemento de carga
+
+								TIPOS DE SERVICE
+									.ClusterIP
+									.NodePort
+									.LoadBalancer
+
+		.ClusterIP - Serve para expor portas internamentes para que possamos acessar de outros pods
+			Ex: Caso tenhamos um api que precisar acessar um banco de dados que está em um pod Separado
+
+
+		.NodePort - Ele cria uma canal externo onde é possível se comunicar com um pod rodando no kubernete
+			Ex: Ele expoem uma porta no cluster kubernet para que seja possível acessar o serviço externamente
+
+
+		.LoadBalancer - Quando utilizamos o serviço de Kubernetes as Service 
+			Ex: Nesse caso ele cria o LoadBalancer na frente do serviço gerando um ip publico que a partir desse ip podemos acessar
+			o service
+
+
+		1  - Criando um service do tipo ClusterIP
+			apiVersion: apps/v1
+			kind: Deployment
+			metadata:   
+			name: meudeployment
+			spec:
+			replicas: 1
+			selector:
+				matchLabels:
+				app: web
+				template:
+				metadata:
+					labels: 
+					app: web
+				spec:
+					containers:
+					- name: web
+						image: kubedevio/web-page:blue
+						ports:
+						- containerPort: 80
+			
+			---
+
+			apiVersion: v1
+			kind: Service
+			metadata: 
+			name: web
+			spec:
+			selector:
+				app: web
+			ports:
+				- port: 80
+				protocol: TCP
+				name: http
+			type: ClusterIP
+
+		2 -  kubectl apply -f meudeployment.yaml		
+		3 -  O service do tipo ClusterIP só conseguiremos acessar internamente
+		4 -  Então se mudarmos o type para type: NodePort e rodarmos novamente o comando apply teremos nosso serviço externo
+		5 - Listando serviços - kubectl get services
+		6 - Para poder acessar teriamos que utilizar o inspect do docker e verificar o ip do container que gostariamos de acessar
+			porém tudo isso não é uma boa prática, então devemos excluir nosso cluster e configuramos uma forma de fazermos Bind
+			de portas do nosso computador com o container
+
+			kind delete cluster --name meucluster
+
+		7 - A nova configuração ficará assim		
+				kind: Cluster
+				apiVersion: kind.x-k8s.io/v1alpha4
+				nodes:
+				- role: [control-plane]
+				- role: [control-plane]
+				- role: [control-plane]
+				- role: [worker]
+				- role: [worker]
+				- role: [worker]
+				extraPortMappings:
+					- containerPort: 30000
+					hostPort: 8080
+
+			kind create cluster --name meucluster --config cluster.yaml
+			Agora se executarmos docker container ls - Iremos ver que o nosso container terá a porta 30000 como bind			
+
+		8 - Agora temos que atualizar nosso deployment para que ele utilize a porta 30000 do container
+				apiVersion: apps/v1
+				kind: Deployment
+				metadata:   
+				name: meudeployment
+				spec:
+				replicas: 1
+				selector:
+					matchLabels:
+					app: web
+					template:
+					metadata:
+						labels: 
+						app: web
+					spec:
+						containers:
+						- name: web
+							image: kubedevio/web-page:blue
+							ports:
+							- containerPort: 80
+				
+				---
+
+				apiVersion: v1
+				kind: Service
+				metadata: 
+				name: web
+				spec:
+				selector:
+					app: web
+				ports:
+					- port: 80
+					protocol: TCP
+					name: http
+					nodePort: 30000
+				type: NodePort
+
+		9 - kubectl apply -f meudeployment.yaml
+			kubectl get all
+
+
+Tempo da Aula
+01:30:30 

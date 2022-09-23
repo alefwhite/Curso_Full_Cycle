@@ -168,3 +168,54 @@ o seguinte comando -> docker volume prune -> y
 #=====================================================================================================================================
 
 Trabalhando com Imagens
+
+https://hub.docker.com/ -> Repositório onde fica as imagens do docker
+
+Por padrão sempre que tivermos que subir uma imagem para o docker hub devemos subir uma como latest e a outra com a versão que definimos
+
+Como baixar uma imagem
+    docker pull nome_da_imagem desejada -> Por pdrão ele vai baixar a latest da imagem
+
+
+Como listar as imagens já baixadas
+    docker images
+
+Como remover uma nome_da_imagem
+    docker rmi nome_da_imagem:tag ->  A tag da imagem a gente pode ver através do comando docker images
+
+
+Criando a primeira imagem com Dockerfile
+DOCKERFILE - O Dockerfile nada mais é do que um meio que utilizamos para criar nossas próprias imagens. 
+Em outras palavras, ele serve como a receita para construir um container, 
+permitindo definir um ambiente personalizado e próprio para meu projeto pessoal ou empresarial.
+
+
+Criar uma pasta para fazer esse módulo -> Na raiz do projeto criar uma pasta com o nome 3-Docker-Comandos e detro dela um Dockerfile
+e uma pasta html
+
+Criação de uma imagem usando dockerfile	
+	1 - Abrir o vsocde e criar um arquivo Dockerfile
+	2 - Primeira instrução no dockerfile deve ser a imagem que queremos usar - Ex FROM nginx
+	3 - Segunda instrução podemos colocar alguns comandos que queremos executar no container 
+        - Ex: RUN apt-get update - RUN apt-get install curl --yes - RUN apt-get install vim --yes	
+========================================================================================================================================================================
+    Exemplo usado na aula:
+        FROM nginx:latest
+        RUN apt-get update
+        RUN apt-get install vim -y
+
+    docker image build -t  11072012/nginx-com_vim:latest .
+                        nome_do_usuario_dockerhub/nome_da_imagem
+
+    -t -> Nome da tag
+
+    Avaçando com dockerfile:
+        No dockerfile iremos incluir novas propriedades
+
+            FROM nginx:latest
+            WORKDIR /app -> Criando o diretorio de trabalho
+            RUN apt-get update && \
+            apt-get install vim -y
+            COPY html/ /usr/share/nginx/html-> html é a pasta que queremos copiar para dentro do diretorio do container
+
+    

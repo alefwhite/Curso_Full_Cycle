@@ -218,4 +218,34 @@ Criação de uma imagem usando dockerfile
             apt-get install vim -y
             COPY html/ /usr/share/nginx/html-> html é a pasta que queremos copiar para dentro do diretorio do container
 
-    
+========================================================================================================================================================================
+ENTRYPOINT vs CMD
+
+Dica da aula:
+    docker ps -a -q -> Lista os IDS de todos os containers
+
+    docker rm $(docker ps -a -q) -f -> Irá deletar todos os containers que retornar do comando docker ps -a -q
+
+
+CMD ->
+
+    FROM nginx:ubuntu
+    CMD[ "echo", "Hello World" ]
+
+
+    docker run --rm nome_do_container echo "oi" -> Todo comando que for passado no final ele irá substituir o que estiver dentro do CMD
+
+
+ENTRYPOINT
+
+    FROM nginx:ubuntu
+
+    ENTRYPOINT ["echo", "Hello "] -> Entrypoint é um comando fixo que mesmo se eu passar algum comando no final quando for executar
+    a montagem do container ele não será substituindo
+
+    CMD["Hello World" ] -> CMD é um comando variável
+
+
+
+
+Como saber o ENTRYPOINT de uma imagem

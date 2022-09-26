@@ -245,7 +245,38 @@ ENTRYPOINT
 
     CMD["Hello World" ] -> CMD é um comando variável
 
+========================================================================================================================================================================
 
+Plubicando imagem no DockerHub
+            Passo para criar a imagem
+            1 - Criar uma pasta com o nome Docker
+            2 - Criar  uma pasta com o nome html e um arquivo index.html com um h1 com o seu nome
+            3 - Criar um arquivo Dockerfile na raiz da pasta Docker
+            4 - FROM nginx:latest   
+                COPY html /usr/share/nginx/html
+                ENTRYPOINT ["/docker-entrypoint.sh"]
+                CMD ["nginx", "-g", "daemon off;"]
+            5 - Agora no terminal apontando para a raiz da pasta Docker devemos fazer o build
+            6 - docker build -t alefwhite/nginx-fullcyle . -> alefwhite/fullcyle Seria o nome que queremos dar a nossa imagem
+            7 - Rodando a imagem
+            8 - docker run --rm -d -p 8080:80 alefwhite/nginx-fullcyle
 
+            Passo para subir a imagem
+            1 - docker login
+            2 - Após fazer o login informando o username e password podemos fazer o push da imagem desejada
+            3 - docker push nome_da_imagem -> Ex: alefwhite/nginx-fullcyle
+========================================================================================================================================================================
 
-Como saber o ENTRYPOINT de uma imagem
+Entendendo tipos de Network
+
+            1 - Primeiro tipo de network no docker é o -bridge - Usado quando é necessário fazer uma comunicação entre containers
+                Ex: Uma aplicação em laravel rodando container precisa se conectar a um container que está rodando o mysql
+
+            2 - Segundo tipo de network é o -host - Com o host é possivel fazer uma comunicação do container com a máquina em que ele
+                está rodando e da máquina para o container.
+
+            3 - Terceiro tipo de network é o -overlay -> Muito usado com o docker swarm
+            
+            4 - Quarto tipo tipo de network é o -maclan
+            
+            5 - Quinto tipoe é o -none

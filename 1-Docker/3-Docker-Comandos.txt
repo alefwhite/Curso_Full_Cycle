@@ -322,3 +322,29 @@ Trabalhando com bridge
 =======================================================================================================================================
 
 Trabalhando com host
+
+            O tipo de network host não roda no mac pois o docker foi feito para rodar no linux, então o professor comentou que ele raramente
+            usa esse tipo de network, mas explicou que por do docker desktop criar uma máquina virtual para emular o docker não é possivel
+            conectar o container com o mac dele.
+
+            Agora como o wsl2 é um linux é possivel utilzarmos no windows.
+
+            Exemplo da aula:
+
+            1 - docker run --rm -d --name nginx --network host nginx - Utilizando o host ele junta a rede do 
+                docker host(Máquina onde está rodando o docker) com a do container.
+
+=======================================================================================================================================
+
+Container acessando a nossa máquina
+
+            Exemplo da aula:
+
+            1 - O professor subiu um servidor php no rodando na porta 8000, e caso precisarmos acessar essa porta de dentro do 
+                container o que fariamo?
+
+            2 - docker run --rm -it --name ubuntu ubuntu bash
+                2.1 - Acessando a página localhost:8000
+                2.2 - apt-get update
+                2.3 - apt-get install curl -yes
+                2.4 - curl http://host.docker.internal:8000

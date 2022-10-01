@@ -34,7 +34,7 @@
     docker run -it --rm ubuntu bash
     --rm - Ele vai executar o contêiner e abrir a interação e quando eu sair do container ele vai deletar esse container
 
-#=====================================================================================================================================
+=======================================================================================================================================
 
 Publicando porta com o servidor nginx
 
@@ -51,7 +51,7 @@ docker run -d -p 8080:80 nginx
 pois ele não deixa o terminal ficar preso no processo do container, senão tiver essa flag ele fica rodando o processo e se
 apertamos crtl + c ele vai deligar o container
 
-#=====================================================================================================================================
+=======================================================================================================================================
 
 Removendo Containers
 
@@ -63,7 +63,7 @@ docker rm + id_do_container ou nome_do_container -> Vai deletar o container que 
 
 docker rm + id_do_container ou nome_do_container -f -> Vai deletar o container que está rodando, pois o -f significa force
 
-#=====================================================================================================================================
+=======================================================================================================================================
 
 Acessando e alterando arquivos de um container
 
@@ -91,7 +91,7 @@ docker exec nome_do_container comando_desejado -> Executa um comando no nosso co
 
 Caso eu mate meu container eu irei perder todas as alterações feitas nele então no tópico abaixo veremos uma forma de salvar essas
 alterações mesmo que o container morra
-#=====================================================================================================================================
+=======================================================================================================================================
 
 Iniciando com bind mounts
 
@@ -117,7 +117,7 @@ Forma mais atual de espelharmos uma pasta do computador para o container
 A diferença entre o -v e o --mount é que se eu passar um caminho que tenha um pasta que não exista ele dará um erro agora 
 o -v ele criará essa pasta que não existe 
 
-#=====================================================================================================================================
+=======================================================================================================================================
 
 Trabalhando com volumes
 
@@ -165,7 +165,7 @@ Agora podemos criar um container nginx3 e usar o comando -v
 
 Caso eu tenho alguns volumes com alguns arquivos que não estão sendo usados e ocupando capacidade do meu computador eu posso digitar
 o seguinte comando -> docker volume prune -> y
-#=====================================================================================================================================
+=======================================================================================================================================
 
 Trabalhando com Imagens
 
@@ -198,7 +198,7 @@ Criação de uma imagem usando dockerfile
 	2 - Primeira instrução no dockerfile deve ser a imagem que queremos usar - Ex FROM nginx
 	3 - Segunda instrução podemos colocar alguns comandos que queremos executar no container 
         - Ex: RUN apt-get update - RUN apt-get install curl --yes - RUN apt-get install vim --yes	
-========================================================================================================================================================================
+=======================================================================================================================================
     Exemplo usado na aula:
         FROM nginx:latest
         RUN apt-get update
@@ -218,7 +218,7 @@ Criação de uma imagem usando dockerfile
             apt-get install vim -y
             COPY html/ /usr/share/nginx/html-> html é a pasta que queremos copiar para dentro do diretorio do container
 
-========================================================================================================================================================================
+=======================================================================================================================================
 ENTRYPOINT vs CMD
 
 Dica da aula:
@@ -245,7 +245,7 @@ ENTRYPOINT
 
     CMD["Hello World" ] -> CMD é um comando variável
 
-========================================================================================================================================================================
+=======================================================================================================================================
 
 Plubicando imagem no DockerHub
             Passo para criar a imagem
@@ -265,11 +265,12 @@ Plubicando imagem no DockerHub
             1 - docker login
             2 - Após fazer o login informando o username e password podemos fazer o push da imagem desejada
             3 - docker push nome_da_imagem -> Ex: alefwhite/nginx-fullcyle
-========================================================================================================================================================================
+=======================================================================================================================================
 
 Entendendo tipos de Network
 
-            1 - Primeiro tipo de network no docker é o -bridge - Usado quando é necessário fazer uma comunicação entre containers
+            1 - Primeiro tipo de network no docker é o -bridge que é o padrão quando não definimos na criação do container - 
+                Usado quando é necessário fazer uma comunicação entre containers
                 Ex: Uma aplicação em laravel rodando container precisa se conectar a um container que está rodando o mysql
 
             2 - Segundo tipo de network é o -host - Com o host é possivel fazer uma comunicação do container com a máquina em que ele
@@ -280,3 +281,44 @@ Entendendo tipos de Network
             4 - Quarto tipo tipo de network é o -maclan
             
             5 - Quinto tipoe é o -none
+
+=======================================================================================================================================
+
+Trabalhando com bridge
+
+            1 - docker network - Lista os comandos de network
+            2 - docker network ls - Lista todas as network
+            3 - docker network prune - Remove as networks que não estão sendo utilizadas
+
+
+            Exemplo da aula:
+            
+            1 - docker run -d -t --name ubuntu1 bash
+            2 - docker run -d -t --name ubuntu2 bash
+            3 - docker network inspect bridge -> Estamos inspecionandos as networks bridge
+            4 - docker attach ubuntu1 -> Entrando no container do ubuntu1
+                4.1 - ip addr show - Verificando o ip do container
+                4.2 - ping ip_do_container_ubuntu2_listado_no_inpect - Dessa forma podemos ter a certeza que os containers estão 
+                rodando na mesma rede.
+                4.2 - ping ubuntu2 - Não vai se possivel pingar o container pois deixamos ele criar um nome para rede por padrão.
+
+            5 - docker network create --driver bridge minha_rede
+                5.1 - docker ls - Irá listar as redes já existentes e a nova rede que criamos
+                Na coluna Name podemos verificar que ele não criou mais como bridge e sim o nome que definimos.
+
+            6 - docker run -dit --name ubuntu1 --network minha_rede bash 
+                docker run -dit --name ubuntu2 --network minha_rede bash
+                Criando o containers do ubuntu dentro da mesma rede para que seja possivel eles se comunicarem. 
+                | -dit -> É um comando reduzido de -d e -it
+
+            7 - docker exec -it ubuntu1 bash
+                7.1 - ping ubuntu2 - Agora é possivel fazer o ping pelo nome do container
+
+            8 - docker network connect minharede ubuntu3 - Conecta o container em uma rede.
+                8.1 - docker exec -it ubuntu3 bash  
+                8.2 - ping ubuntu2
+                8.3 - docker network inspect minha_rede -> Irá mostrando todos os containers conectados a rede minha_rede
+
+=======================================================================================================================================
+
+Trabalhando com host

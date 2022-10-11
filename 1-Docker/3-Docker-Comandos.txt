@@ -280,7 +280,7 @@ Entendendo tipos de Network
             
             4 - Quarto tipo tipo de network é o -maclan
             
-            5 - Quinto tipoe é o -none
+            5 - Quinto tipo é o -none
 
 =======================================================================================================================================
 
@@ -323,9 +323,9 @@ Trabalhando com bridge
 
 Trabalhando com host
 
-            O tipo de network host não roda no mac pois o docker foi feito para rodar no linux, então o professor comentou que ele raramente
-            usa esse tipo de network, mas explicou que por do docker desktop criar uma máquina virtual para emular o docker não é possivel
-            conectar o container com o mac dele.
+            O tipo de network host não roda no mac pois o docker foi feito para rodar no linux, então o professor comentou que ele 
+            raramente usa esse tipo de network, mas explicou que por causa do docker desktop criar uma máquina virtual para emular 
+            o docker não é possivel conectar o container com o mac dele.
 
             Agora como o wsl2 é um linux é possivel utilzarmos no windows.
 
@@ -341,10 +341,69 @@ Container acessando a nossa máquina
             Exemplo da aula:
 
             1 - O professor subiu um servidor php no rodando na porta 8000, e caso precisarmos acessar essa porta de dentro do 
-                container o que fariamo?
+                container o que fariamos?
 
             2 - docker run --rm -it --name ubuntu ubuntu bash
                 2.1 - Acessando a página localhost:8000
                 2.2 - apt-get update
                 2.3 - apt-get install curl -yes
                 2.4 - curl http://host.docker.internal:8000
+=======================================================================================================================================
+
+Instalando framework em um container
+
+            Fazendo o passo a passo sem o dockerfile para depois passar a instalação do laravel para o dockerfile com mais entendimento
+
+            Exemplo da aula: No caso do laravel vimos na aula que ele precisa do composer para que ele seja instalado, então fizemos
+            os primeiros passos sem o dockerfile para que cada um desses passos possam ser passados para o dockerfile fazer
+
+            1 - docker run -it --name php php:7.4-cli bash
+            2 - Dentro do container - apt-get update
+            3 - php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+                php -r "if (hash_file('sha384', 'composer-setup.php') === '55ce33d7678c5a611085589f1f3ddf8b3c52d662cd01d4ba75c0ee0459970c2200a51f492d557530c71c15d8dba01eae') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+                php composer-setup.php
+                php -r "unlink('composer-setup.php');"
+            4 - apt-get install libzip-dev -y - docker-php-ext-install zip 
+            5 - php composer.phar create-project laravel/laravel example-app
+            6 - cd laravel
+
+
+=======================================================================================================================================
+
+Ativando entrypoint e command - Continuação da aula de instalação de framework
+
+            1 - Criar um arquivo dockerfile
+
+                FROM php:7.4-cli
+
+                WORKDIR /var/www
+
+                RUN apt-get update && \
+                    apt-get install libzip-dev -y && \
+                    docker-php-ext-install zip 
+
+                RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
+                    php composer-setup.php && \
+                    php -r "unlink('composer-setup.php');"
+
+                RUN php composer.phar create-project laravel/laravel example-app
+                
+                ENTRYPOINT ["php", "laravel/artisan", "serve"]
+                
+                CMD ["--host=0.0.0.0"]
+
+            2 - Fazendo o build
+
+                docker build -t alefwhite/laravel:latest .
+
+            3 - docker run --rm -d --name laravel -p 8000:8000 alefwhite/laravel
+
+            4 - docker logs laravel
+
+            5 - Substituindo o comando que está no dockerfile
+                docker run --rm -d --name laravel -p 8001:8001 alefwhite/laravel --host=0.0.0.0 --port=8001
+            
+            6 - docker logs laravel
+
+            7 - docker push alefwhite/laravel
+=======================================================================================================================================

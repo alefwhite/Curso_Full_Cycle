@@ -407,3 +407,40 @@ Ativando entrypoint e command - Continuação da aula de instalação de framewo
 
             7 - docker push alefwhite/laravel
 =======================================================================================================================================
+
+Criando aplicação NodeJs sem o Node na máquina
+
+        1 - Dentro da pasta docker onde estamos fazendo os exemplos em aula devemos criar uma pasta chamada node
+
+        2 - docker run --rm -it -v $(pwd)/:/usr/src/app -p 3000:3000 node:15 bash
+
+        3 - Para testarmos se tudo que incluirmos no container irá aparecer na nossa máquina, e tudo que incluirmos na nossa máquina 
+            irá aparecer no container podemos utilizar o seguinte comando "touch oi" dentro do bash do container.
+            3.1 - touch oi
+            3.2 - rm -f oi
+            3.3 - node
+            3.4 - npm init -y
+            3.5 - npm i express --save
+            3.6 - Devemos criar um arquivo index.js e incluir o código abaixo.
+                  const express = require('express')
+                  const app = express()
+                  const port = 3000
+
+                  app.get('/', (req, res) => {
+                    res.send('<h1>Olá Mundo</h1>')
+                  })
+
+                  app.listen(port, () => console.log(`Server is running: ${port}`))
+            3.7 - node index.js
+
+=======================================================================================================================================
+
+Gerando imagem da aplicação NodeJs
+
+        1 - Agora dentro da pasta node criada na aula anterior devemos criar um arquivo Dockerfile
+
+            FROM node:15
+
+            WORKDIR /usr/src/app
+
+            

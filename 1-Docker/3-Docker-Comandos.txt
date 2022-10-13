@@ -443,4 +443,35 @@ Gerando imagem da aplicação NodeJs
 
             WORKDIR /usr/src/app
 
-            
+            COPY . .
+
+            EXPOSE 3000
+
+            CMD ["node", "index.js"]
+
+        2 - docker build -t alefwhite/hello-express .
+
+        3 - docker run -p 3000:3000 alefwhite/hello-express:latest
+
+        4 - docker push alefwhite/hello-express:latest
+
+        5 - Podemos trabalhar com dois Dockerfile um para desenvolvimento outro para produção
+
+        6 - Então agora devemos criar um Dockerfile.prod
+
+            FROM node:15
+
+            WORKDIR /usr/src/app
+
+            COPY . .
+
+            EXPOSE 3000
+
+            CMD ["node", "index.js"]
+
+        7 - Para criar a imagem a partir do dockerfile de prod
+            docker build -t alefwhite/hello-express:latest node/ -f node/Dockerfile.prod
+
+=======================================================================================================================================
+
+Otimização utilizando Multistage Building

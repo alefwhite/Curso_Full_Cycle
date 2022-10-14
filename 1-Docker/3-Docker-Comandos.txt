@@ -386,7 +386,7 @@ Ativando entrypoint e command - Continuação da aula de instalação de framewo
                     php composer-setup.php && \
                     php -r "unlink('composer-setup.php');"
 
-                RUN php composer.phar create-project laravel/laravel example-app
+                RUN php composer.phar create-project laravel/laravel example-app // RUN php composer.phar create-project --prefer-dist laravel/laravel laravel
                 
                 ENTRYPOINT ["php", "laravel/artisan", "serve"]
                 
@@ -475,3 +475,116 @@ Gerando imagem da aplicação NodeJs
 =======================================================================================================================================
 
 Otimização utilizando Multistage Building
+
+        1 - Voltando para o exemplo da aula da instalação do laravel devemos duplicar o dockerfile da aula e renomea-lo para 
+            Dockerfile.prod que ficará com a seguinte configuração.
+
+            FROM php:7.4-cli AS builder
+
+            WORKDIR /var/www
+
+            RUN apt-get update && \
+                apt-get install libzip-dev -y && \
+                docker-php-ext-install zip 
+
+            RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
+                php composer-setup.php && \
+                php -r "unlink('composer-setup.php');"
+
+            RUN php composer.phar create-project --prefer-dist laravel/laravel laravel
+            
+            ENTRYPOINT ["php", "laravel/artisan", "serve"]
+            
+            CMD ["--host=0.0.0.0"]
+
+            FROM php:7.4-fpm-alpine
+
+            WORKDIR /var/www
+
+            RUN rm -rf /var/www/html
+
+            COPY --from=builder /var/www/laravel .
+
+            RUN ln -s public html -> Incluido na aula Nginx como proxy reverso, link simbolico para que toda vez que o nginx acessar a 
+            pasta html ele redirecionar para a public do container do laravel
+
+            RUN chown -R www-data:www-data /var/www
+
+            EXPOSE 900
+
+            CMD ["php-fpm"]
+            
+        2 - docker build -t alefwhite/laravel:prod laravel -f laravel/Dockerfile.prod
+
+        3 - docker images | grep laravel
+=======================================================================================================================================
+
+Nginx como proxy reverso
+
+        1 - Dockerfile do nginx
+                FROM nginx:latest   
+
+                COPY html /usr/share/nginx/html
+
+                ENTRYPOINT ["/docker-entrypoint.sh"]
+
+                CMD ["nginx", "-g", "daemon off;"]
+
+        2 - Depois dentro da pasta docker/nginx devemos criar uma arquivo chamdo nginx.conf
+            server {
+                listen 80;
+                listen [::]:80;
+                server_name example.com;
+                root /var/www/html;
+            
+                add_header X-Frame-Options "SAMEORIGIN";
+                add_header X-Content-Type-Options "nosniff";
+            
+                index index.php;
+            
+                charset utf-8;
+            
+                location / {
+                    try_files $uri $uri/ /index.php?$query_string;
+                }
+            
+                location = /favicon.ico { access_log off; log_not_found off; }
+                location = /robots.txt  { access_log off; log_not_found off; }
+            
+                error_page 404 /index.php;
+            
+                location ~ \.php$ {
+                    fastcgi_split_path_info ^(.+\.php)(/.+)$;
+                    fastcgi_pass laravel:9000;
+                    fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+                    include fastcgi_params;
+                }
+            
+                location ~ /\.(?!well-known).* {
+                    deny all;
+                }
+            }
+
+            3 - Agora devemos criar o dockerfile do nginx de prod - Dockerfile.prod
+
+                FROM nginx:1.15.0-alpine
+
+                RUN rm /etc/nginx/conf.d/default.conf   
+
+                COPY nginx.conf /etc/nginx/conf.d
+
+                RUN mkdir /var/www/html -p && touch /var/www/html/index.php
+
+            4 - docker build -t alefwhite/nginx:prod . -f Dockerfile.prod 
+
+            5 - docker network list
+
+            6 - docker network create laranet
+
+            7 - docker run -d --network laranet --name laravel alefwhite/laravel:prod 
+
+            8 - docker run -d --network laranet --name nginx -p 8080:80 alefwhite/nginx:prod 
+=======================================================================================================================================
+
+Iniciando com Docker-composer
+

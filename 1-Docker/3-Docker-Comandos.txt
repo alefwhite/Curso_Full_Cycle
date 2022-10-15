@@ -588,3 +588,315 @@ Nginx como proxy reverso
 
 Iniciando com Docker-composer
 
+Docker Compose é o orquestrador de containers da Docker. E como funciona um orquestrador em uma orquestra? 
+Ele rege como uma banda deve se comportar/tocar durante uma determinada apresentação ou música.
+
+Com o Docker Compose é a mesma coisa, mas os maestros somos nós! Nós que iremos reger esse comportamento através do arquivo chamado 
+docker-compose, semelhante ao Dockerfile, escrito em YAML (acrônimo recursivo para YAML Ain’t Markup Language) 
+é um formato de codificação de dados legíveis por humanos, o que torna fácil de ler e entender o que um Compose faz.
+
+Dentro da nossa pasta docker onde temos as pastas do laravel, node e nginx que foram feitos os exemplos até agora devemos criar um 
+arquivo chamado docker-compose.yaml
+
+            docker-compose.yaml
+
+            version: '3'
+
+            services: 
+
+                laravel:
+                    image: alefwhite/laravel:prod
+                    container_name: laravel
+                    networks:
+                        - laranet
+
+                nginx:
+                    image: alefwhite/nginx:prod
+                    container_name: nginx
+                    networks:
+                        - laranet
+                    ports:
+                        - "8080:80"
+
+                networks:
+                    laranet
+                        driver: bridge
+
+Subindo o container com o docker-compose -> docker-compose up
+
+=======================================================================================================================================
+
+Buildando images com Docker-compose
+
+No dia a dia nós não iremos trabalhar com uma imagem fixa, então devemos passar o caminho da pasta onde está o dockerfile para que o 
+docker compose posssa fazer o build 
+
+            docker-compose.yaml
+
+            version: '3'
+
+            services: 
+
+                laravel:
+                    build: 
+                        context: ./laravel
+                        dockerfile: Dockerfile.prod
+                    image: alefwhite/laravel:prod
+                    container_name: laravel
+                    networks:
+                        - laranet
+
+                nginx:
+                    build: 
+                        context: ./nginx
+                        dockerfile: Dockerfile.prod
+                    image: alefwhite/nginx:prod
+                    container_name: nginx
+                    networks:
+                        - laranet
+                    ports:
+                        - "8080:80"
+
+                networks:
+                    laranet
+                        driver: bridge
+
+Agora devemos executar -> docker-compose up -d -> O -d é um dettach que no caso ele não vai prender o nosso terminal 
+
+Listando os containers do docker-compose -> docker-compose ps
+
+Desligando os containers -> docker-compose down
+
+Caso tivermos que fazer alguma alteração em nossos dockerfile podemos fazer um rebuild -> docker-compose up -d --build
+
+=======================================================================================================================================
+
+Criando banco de dados MYSQL
+
+Dentro da nossa pasta docker devemos criar uma pasta mysql, pois trabalharemos com volumes para que tenhamos backup das nossas 
+informações.
+
+            docker-compose.yaml
+
+            version: '3'
+
+            services: 
+                db:
+                    image: mysql:5.7
+                    command: --innodb-use-native-aio=0
+                    container_name: db
+                    restart: always
+                    tty: true
+                    volumes:
+                        - ./mysql:var/lib/mysql
+                    environment:
+                        - MYSQL_DATABASE=nodedb
+                        - MYSQL_ROOT_PASSWORD=root
+                        - MYSQL_USER=root
+                    networks:
+                        - node-network
+
+                networks:
+                    node-network
+                        driver: bridge
+
+=======================================================================================================================================
+
+Configurando app node com docker-compose
+            docker-compose.yaml
+
+            version: '3'
+
+            services: 
+                app:
+                    build:
+                        context: node
+                    container_name: app
+                    networks:
+                        - node-network
+                    volumes:
+                        - ./node:/usr/src/app
+                    tty: true
+                    ports:
+                        - "3000:3000"
+
+                db:
+                    image: mysql:5.7
+                    command: --innodb-use-native-aio=0
+                    container_name: db
+                    restart: always
+                    tty: true
+                    volumes:
+                        - ./mysql:var/lib/mysql
+                    environment:
+                        - MYSQL_DATABASE=nodedb
+                        - MYSQL_ROOT_PASSWORD=root
+                        - MYSQL_USER=root
+                    networks:
+                        - node-network
+
+                networks:
+                    node-network
+                        driver: bridge
+
+Rebuildando -> docker-compose up -d --build
+
+Entrando no container app -> docker exec -it app bash -> node index.js
+
+Entrando no container mysql -> docker exec -it db bash -> mysql -uroot -p -> root -> show databases
+
+        use nodedb
+
+        create table people (
+            id int auto_increment,
+            name varchar(255),
+            primary key(id)
+        )
+
+        desc people
+
+
+Agora no terminal que está rodando a aplicação node devemos instalar o driver do mysql -> npm install mysql --save
+
+Agora devemos atualizar o nosso index.js com o seguinte código abaixo:
+
+            const express = require('express')
+            const app = express()
+            const port = 3000
+            const config = {
+                host: 'db',
+                user: 'root',
+                password: 'root',
+                database: 'nodedb'
+            }
+
+            const mysql = require('mysql')
+
+            const connection = mysql.createConnection(config)
+
+            const sql = `INSERT INTO people(name) values('Alef White')`
+            connection.query(sql)
+            connection.end()
+
+            app.get('/', (req, res) => {
+                res.send('<h1>Olá Mundo</h1>')
+            })
+
+            app.listen(port, () => console.log(`Server is running: ${port}`))
+
+
+Agora no terminal que está rodando o cotaniner do mysql executar o comando abaixo:
+
+            SELECT * FROM people
+
+=======================================================================================================================================
+
+Dependência entre containers
+
+Nessa aula vimos que podemos ter uma demora na execução do container que contém o banco de dados e isso impactar no container da 
+aplicação node, para solucionar esse problema temos diversas soluções a que foi proposta na aula foi o dokcerize, então agora devemos
+atualizar no dockerfile do node conforme o código abaixo:
+            FROM node:15
+
+            WORKDIR /usr/src/app
+
+            RUN apt-get update && apt-get install -y wget
+            ENV DOCKERIZE_VERSION v0.6.1
+            RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+                && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+                && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+            
+            EXPOSE 3000
+=======================================================================================================================================
+
+            docker-compose.yaml
+
+            version: '3'
+
+            services: 
+                app:
+                    build:
+                        context: node
+                    container_name: app
+                    networks:
+                        - node-network
+                    volumes:
+                        - ./node:/usr/src/app
+                    tty: true
+                    ports:
+                        - "3000:3000"
+                    depends_on:
+                        - db
+
+                db:
+                    image: mysql:5.7
+                    command: --innodb-use-native-aio=0
+                    container_name: db
+                    restart: always
+                    tty: true
+                    volumes:
+                        - ./mysql:var/lib/mysql
+                    environment:
+                        - MYSQL_DATABASE=nodedb
+                        - MYSQL_ROOT_PASSWORD=root
+                        - MYSQL_USER=root
+                    networks:
+                        - node-network
+
+                networks:
+                    node-network
+                        driver: bridge
+
+Rebuildando -> docker-compose up -d --build
+
+Saindo do container node -> exit
+Entrando docker exec -it app bash -> dockerize -wait tcp://db:3306 
+
+Agora para testar o dockerize devemos stopar o container do mysql -> docker-compose stop db -> docker-compose ps
+
+Agora no container do node executar -> dockerize -wait tcp://db:3306 -timeout 50s
+
+Agora iremos mudar o entrypoint do nosso container node
+
+            docker-compose.yaml
+
+            version: '3'
+
+            services: 
+                app:
+                    build:
+                        context: node
+                    container_name: app
+                    entrypoint: dockerize -wait tcp://db:3306 -timeout 60s docker-entrypoint.sh
+                    networks:
+                        - node-network
+                    volumes:
+                        - ./node:/usr/src/app
+                    tty: true
+                    ports:
+                        - "3000:3000"
+                    depends_on:
+                        - db
+
+                db:
+                    image: mysql:5.7
+                    command: --innodb-use-native-aio=0
+                    container_name: db
+                    restart: always
+                    tty: true
+                    volumes:
+                        - ./mysql:var/lib/mysql
+                    environment:
+                        - MYSQL_DATABASE=nodedb
+                        - MYSQL_ROOT_PASSWORD=root
+                        - MYSQL_USER=root
+                    networks:
+                        - node-network
+
+                networks:
+                    node-network
+                        driver: bridge
+
+Rebuildando -> docker-compose up -d --build
+
+=======================================================================================================================================
